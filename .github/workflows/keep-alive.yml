@@ -25,18 +25,33 @@ jobs:
       run: |
         node -e "
           const { createClient } = require('@supabase/supabase-js');
-          const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
+          const url = process.env.SUPABASE_URL;
+          const key = process.env.SUPABASE_KEY;
+
+          console.log('🔌 Connecting to Supabase...');
+          const supabase = createClient(url, key);
+          console.log('✅ Supabase client initialized.');
 
           const now = new Date().toISOString();
+          console.log('🕒 Current timestamp:', now);
 
-          sb
+          console.log('📥 Inserting into table...');
+          supabase
             .from('alive')
             .insert([{ timestamp: now }])
-            .then(({ error }) => {
-              if (error) throw error;
-              console.log('Inserted timestamp:', now);
+            .then((res) => {
+              if (res.error) {
+                console.error('❌ Supabase insert error:', res.error.message);
+                console.error(res.error);
+              } else {
+                console.log('✅ Inserted successfully:', res.data);
+              }
             })
-            .catch(console.error);
+            .catch((err) => {
+              console.error('🔥 Caught error during insert:', err.message);
+              console.error(err);
+            });
         "
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
