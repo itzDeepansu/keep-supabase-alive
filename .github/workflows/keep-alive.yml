@@ -24,7 +24,7 @@ jobs:
     - name: Install Supabase JS SDK
       run: npm install @supabase/supabase-js
 
-    - name: Insert timestamp into 'alive' table
+    - name: Insert timestamp into XIST
       run: |
         node -e "
           const { createClient } = require('@supabase/supabase-js');
@@ -59,6 +59,41 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+    - name: Insert timestamp into Questify
+      run: |
+        node -e "
+          const { createClient } = require('@supabase/supabase-js');
+
+          const url = process.env.SUPABASE_URL_QUESTIFY;
+          const key = process.env.SUPABASE_KEY_QUESTIFY;
+
+          console.log('🔌 Connecting to Supabase...');
+          const supabase = createClient(url, key);
+          console.log('✅ Supabase client initialized.');
+
+          const now = new Date().toISOString();
+          console.log('🕒 Current timestamp:', now);
+
+          console.log('📥 Inserting into table...');
+          supabase
+            .from('alive')
+            .insert([{ timestamp: now }])
+            .then((res) => {
+              if (res.error) {
+                console.error('❌ Supabase insert error:', res.error.message);
+                console.error(res.error);
+              } else {
+                console.log('✅ Inserted successfully:', res.data);
+              }
+            })
+            .catch((err) => {
+              console.error('🔥 Caught error during insert:', err.message);
+              console.error(err);
+            });
+        "
+      env:
+        SUPABASE_URL_QUESTIFY: ${{ secrets.SUPABASE_URL_QUESTIFY }}
+        SUPABASE_KEY_QUESTIFY: ${{ secrets.SUPABASE_KEY_QUESTIFY }}
 
     - name: Commit timestamp to repo
       run: |
