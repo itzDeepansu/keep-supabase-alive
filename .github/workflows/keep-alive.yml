@@ -56,3 +56,17 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+    - name: Commit timestamp to repo
+      run: |
+        # Set timezone to IST
+        export TZ=Asia/Kolkata
+        now=$(date +"%d-%m-%Y %H:%M:%S")
+
+        echo "Keep-alive ping at $now" >> last-alive.txt
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add last-alive.txt
+        git commit -m "📝 Keep-alive log: $now" || echo "No changes to commit"
+        git push
